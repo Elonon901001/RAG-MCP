@@ -1,0 +1,30 @@
+﻿llm:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.0
+
+embedding:
+  provider: openai
+  model: text-embedding-3-small
+
+vector_store:
+  provider: chroma
+  persist_directory: data/db/chroma
+
+retrieval:
+  top_k: 10
+  dense_weight: 0.5
+  sparse_weight: 0.5
+
+rerank:
+  strategy: none
+  top_n: 5
+
+evaluation:
+  enabled: false
+  backend: custom
+
+observability:
+  log_level: INFO
+  traces_path: logs/traces.jsonl
+  app_log_path: logs/app.log

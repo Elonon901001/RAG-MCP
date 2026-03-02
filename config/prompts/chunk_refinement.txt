@@ -1,0 +1,2 @@
+﻿# Placeholder prompt for chunk refinement.
+# TODO: replace with production-grade prompt in later phase.
