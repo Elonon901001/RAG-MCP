@@ -12,6 +12,7 @@ class LLMFactory:
     """Create LLM instances based on provider settings."""
 
     _registry: dict[str, type[BaseLLM]] = {}
+    _defaults_registered = False
 
     @classmethod
     def register(cls, provider: str, llm_cls: type[BaseLLM]) -> None:
@@ -19,6 +20,7 @@ class LLMFactory:
 
     @classmethod
     def create(cls, settings: Any) -> BaseLLM:
+        cls._register_default_providers()
         llm_settings = cls._extract_llm_settings(settings)
         provider = llm_settings.get('provider')
         if not provider:
@@ -32,6 +34,22 @@ class LLMFactory:
             )
 
         return llm_cls(config=llm_settings)
+
+    @classmethod
+    def _register_default_providers(cls) -> None:
+        if cls._defaults_registered:
+            return
+
+        from libs.llm.azure_llm import AzureOpenAILLM
+        from libs.llm.deepseek_llm import DeepSeekLLM
+        from libs.llm.ollama_llm import OllamaLLM
+        from libs.llm.openai_llm import OpenAICompatibleLLM
+
+        cls.register("openai", OpenAICompatibleLLM)
+        cls.register("azure", AzureOpenAILLM)
+        cls.register("deepseek", DeepSeekLLM)
+        cls.register("ollama", OllamaLLM)
+        cls._defaults_registered = True
 
     @staticmethod
     def _extract_llm_settings(settings: Any) -> dict[str, Any]:

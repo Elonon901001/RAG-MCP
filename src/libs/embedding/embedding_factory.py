@@ -12,6 +12,7 @@ class EmbeddingFactory:
     """Create embedding instances based on provider settings."""
 
     _registry: dict[str, type[BaseEmbedding]] = {}
+    _defaults_registered = False
 
     @classmethod
     def register(cls, provider: str, embedding_cls: type[BaseEmbedding]) -> None:
@@ -19,6 +20,7 @@ class EmbeddingFactory:
 
     @classmethod
     def create(cls, settings: Any) -> BaseEmbedding:
+        cls._register_default_providers()
         embedding_settings = cls._extract_embedding_settings(settings)
         provider = embedding_settings.get('provider')
         if not provider:
@@ -33,6 +35,18 @@ class EmbeddingFactory:
             )
 
         return embedding_cls(config=embedding_settings)
+
+    @classmethod
+    def _register_default_providers(cls) -> None:
+        if cls._defaults_registered:
+            return
+
+        from libs.embedding.azure_embedding import AzureEmbedding
+        from libs.embedding.openai_embedding import OpenAIEmbedding
+
+        cls.register("openai", OpenAIEmbedding)
+        cls.register("azure", AzureEmbedding)
+        cls._defaults_registered = True
 
     @staticmethod
     def _extract_embedding_settings(settings: Any) -> dict[str, Any]:
