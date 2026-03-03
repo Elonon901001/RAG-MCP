@@ -12,6 +12,7 @@ class SplitterFactory:
     """Create splitter instances based on strategy settings."""
 
     _registry: dict[str, type[BaseSplitter]] = {}
+    _defaults_registered = False
 
     @classmethod
     def register(cls, strategy: str, splitter_cls: type[BaseSplitter]) -> None:
@@ -19,6 +20,7 @@ class SplitterFactory:
 
     @classmethod
     def create(cls, settings: Any) -> BaseSplitter:
+        cls._register_default_strategies()
         splitter_settings = cls._extract_splitter_settings(settings)
         strategy = splitter_settings.get('strategy')
         if not strategy:
@@ -32,6 +34,17 @@ class SplitterFactory:
             )
 
         return splitter_cls(config=splitter_settings)
+
+    @classmethod
+    def _register_default_strategies(cls) -> None:
+        if cls._defaults_registered:
+            return
+
+        from libs.splitter.recursive_splitter import RecursiveSplitter
+
+        if "recursive" not in cls._registry:
+            cls.register("recursive", RecursiveSplitter)
+        cls._defaults_registered = True
 
     @staticmethod
     def _extract_splitter_settings(settings: Any) -> dict[str, Any]:
