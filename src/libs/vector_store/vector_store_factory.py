@@ -12,6 +12,7 @@ class VectorStoreFactory:
     """Create vector store instances based on provider settings."""
 
     _registry: dict[str, type[BaseVectorStore]] = {}
+    _defaults_registered = False
 
     @classmethod
     def register(cls, provider: str, vector_store_cls: type[BaseVectorStore]) -> None:
@@ -19,6 +20,7 @@ class VectorStoreFactory:
 
     @classmethod
     def create(cls, settings: Any) -> BaseVectorStore:
+        cls._register_default_providers()
         vector_store_settings = cls._extract_vector_store_settings(settings)
         provider = vector_store_settings.get('provider')
         if not provider:
@@ -33,6 +35,16 @@ class VectorStoreFactory:
             )
 
         return vector_store_cls(config=vector_store_settings)
+
+    @classmethod
+    def _register_default_providers(cls) -> None:
+        if cls._defaults_registered:
+            return
+
+        from libs.vector_store.chroma_store import ChromaStore
+
+        cls.register("chroma", ChromaStore)
+        cls._defaults_registered = True
 
     @staticmethod
     def _extract_vector_store_settings(settings: Any) -> dict[str, Any]:

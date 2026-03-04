@@ -12,6 +12,7 @@ class RerankerFactory:
     """Create reranker instances based on settings backend/strategy."""
 
     _registry: dict[str, type[BaseReranker]] = {"none": NoneReranker}
+    _defaults_registered = False
 
     @classmethod
     def register(cls, provider: str, reranker_cls: type[BaseReranker]) -> None:
@@ -19,6 +20,7 @@ class RerankerFactory:
 
     @classmethod
     def create(cls, settings: Any) -> BaseReranker:
+        cls._register_default_providers()
         rerank_settings = cls._extract_rerank_settings(settings)
         provider = cls._get_provider(rerank_settings)
 
@@ -31,6 +33,16 @@ class RerankerFactory:
             )
 
         return reranker_cls(config=rerank_settings)
+
+    @classmethod
+    def _register_default_providers(cls) -> None:
+        if cls._defaults_registered:
+            return
+
+        from libs.reranker.llm_reranker import LLMReranker
+
+        cls.register("llm", LLMReranker)
+        cls._defaults_registered = True
 
     @staticmethod
     def _get_provider(rerank_settings: dict[str, Any]) -> str:
